@@ -28,12 +28,13 @@ class TeXLearningModel(ABC):
         pass
 
     @abstractmethod
-    def improve(self, training_features: np.ndarray, true_label: str):
-        """Improves this model incrementally using the given feature and label.
+    def improve(self, training_features: np.ndarray, true_labels: List[str]):
+        """
+        Improves this model incrementally using the given features and labels.
 
-        :param training_features: A 1xm array of feature vector with one
-        pixel on each column.
-        :param  true_label: The true label for this feature vector.
+        :param training_features: An nxm array of features with one feature on
+        each row and all pixels on columns.
+        :param  true_labels: A list of n labels, one for each vector.
         """
         pass
 
@@ -102,7 +103,7 @@ class KNNLearningModel(TeXLearningModel):
         self.known_labels = [lbl for lbl in np.unique(self.known_labels)]
         self.is_trained = True
 
-    def improve(self, training_features: np.ndarray, true_label: str):
+    def improve(self, training_features: np.ndarray, true_labels: List[str]):
         raise NotImplemented("Not implemented currently.")
 
     def predict(self, test_features: np.ndarray) -> List[str]:
@@ -155,15 +156,14 @@ class MLPLearningModel(TeXLearningModel):
         self.known_labels = [lbl for lbl in np.unique(self.known_labels)]
         self.is_trained = True
 
-    def improve(self, training_features: np.ndarray, true_label: str):
+    def improve(self, training_features: np.ndarray, true_labels: List[str]):
         if not self.is_trained:
             raise Exception('train method must be called prior to '
                             'invoking this method')
         training_features = self.scaler.transform(training_features)
-        if true_label not in self.known_labels:
-            self.known_labels.append(true_label)
-
-        self.mlp.partial_fit(training_features, [true_label],
+        self.known_labels.extend(true_labels)
+        self.known_labels = [lbl for lbl in np.unique(self.known_labels)]
+        self.mlp.partial_fit(training_features, true_labels,
                              classes=self.known_labels)
 
     def predict(self, test_features: np.ndarray) -> List[str]:
