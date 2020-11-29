@@ -194,4 +194,4 @@ class MLPLearningModel(TeXLearningModel):
         self.mlp = load(model_file)
         self.scaler = load(scaler_file)
         self.is_trained = True
-        self.known_labels = self.mlp.classes_
+        self.known_labels = [lbl for lbl in np.unique(self.mlp.classes_)]
